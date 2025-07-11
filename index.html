@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Neon Drift</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #111, #222);
+      font-family: 'Orbitron', sans-serif;
+      color: cyan;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      z-index: -1;
+      background: transparent;
+    }
+    #hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      font-size: 1.5rem;
+      z-index: 10;
+    }
+    #pauseBtn {
+      background: black;
+      border: 2px solid cyan;
+      color: cyan;
+      padding: 0.3em 0.6em;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="hud">
+    <span id="score">Score: 0</span>
+    <button id="pauseBtn" onclick="togglePause()">Pause</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let lanes = 3;
+    let laneWidth = canvas.width / lanes;
+    let playerLane = 1;
+    let speed = 4;
+    let obstacles = [];
+    let trail = [];
+    let score = 0;
+    let frame = 0;
+    let paused = false;
+
+    function togglePause() {
+      paused = !paused;
+      document.getElementById("pauseBtn").innerText = paused ? "Resume" : "Pause";
+      if (!paused) requestAnimationFrame(gameLoop);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" && playerLane > 0) playerLane--;
+      if (e.key === "ArrowRight" && playerLane < lanes - 1) playerLane++;
+      if (e.key === " " || e.key === "Escape") togglePause();
+    });
+
+    function drawTrail() {
+      trail.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,100,0,${p.alpha})`;
+        ctx.fill();
+      });
+      trail = trail.map(p => ({ ...p, y: p.y + 2, alpha: p.alpha - 0.015 }))
+                   .filter(p => p.alpha > 0);
+    }
+
+    function drawPlayer() {
+      const x = playerLane * laneWidth + laneWidth / 2;
+      const y = canvas.height - 100;
+
+      // Trail like fire
+      trail.push({ x, y: y + 10, r: 10, alpha: 0.5 });
+
+      const gradient = ctx.createRadialGradient(x, y, 5, x, y, 25);
+      gradient.addColorStop(0, "#ff9900");
+      gradient.addColorStop(1, "#ff3300");
+
+      ctx.beginPath();
+      ctx.arc(x, y, 22, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = "#ff3300";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function spawnObstacle() {
+      const lane = Math.floor(Math.random() * lanes);
+      obstacles.push({ lane, y: -50 });
+    }
+
+    function drawObstacles() {
+      for (let obs of obstacles) {
+        obs.y += speed;
+        const x = obs.lane * laneWidth + laneWidth / 2;
+
+        // Bomb shape
+        ctx.beginPath();
+        ctx.arc(x, obs.y, 20, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff0077";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#ff0077";
+        ctx.fill();
+        ctx.closePath();
+
+        // Fuse line
+        ctx.beginPath();
+        ctx.moveTo(x, obs.y - 20);
+        ctx.lineTo(x, obs.y - 40);
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.closePath();
+
+        // Collision
+        const playerX = playerLane * laneWidth + laneWidth / 2;
+        const playerY = canvas.height - 100;
+        const dx = playerX - x;
+        const dy = playerY - obs.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 35) {
+          paused = true;
+          setTimeout(() => {
+            if (confirm(`💥 BOOM! You crashed!\nScore: ${score}\n\nPlay again?`)) {
+              window.location.reload();
+            }
+          }, 150);
+        }
+      }
+      obstacles = obstacles.filter(o => o.y < canvas.height + 50);
+    }
+
+    function drawTrack() {
+      for (let i = 1; i < lanes; i++) {
+        const x = i * laneWidth;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.strokeStyle = "#444";
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#ff00cc";
+        ctx.stroke();
+        ctx.closePath();
+      }
+    }
+
+    function gameLoop() {
+  if (paused) return;
+
+  // Fill background
+  ctx.fillStyle = "#111"; 
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  drawTrack();
+  drawTrail();
+  drawPlayer();
+  drawObstacles();
+
+  if (frame % 60 === 0) {
+    spawnObstacle();
+    score++;
+    document.getElementById("score").innerText = "Score: " + score;
+  }
+
+  frame++;
+  requestAnimationFrame(gameLoop);
+}
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
