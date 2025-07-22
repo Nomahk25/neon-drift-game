@@ -89,7 +89,6 @@
       const x = playerLane * laneWidth + laneWidth / 2;
       const y = canvas.height - 100;
 
-      // Trail like fire
       trail.push({ x, y: y + 10, r: 10, alpha: 0.5 });
 
       const gradient = ctx.createRadialGradient(x, y, 5, x, y, 25);
@@ -115,7 +114,6 @@
         obs.y += speed;
         const x = obs.lane * laneWidth + laneWidth / 2;
 
-        // Bomb shape
         ctx.beginPath();
         ctx.arc(x, obs.y, 20, 0, Math.PI * 2);
         ctx.fillStyle = "#ff0077";
@@ -124,7 +122,6 @@
         ctx.fill();
         ctx.closePath();
 
-        // Fuse line
         ctx.beginPath();
         ctx.moveTo(x, obs.y - 20);
         ctx.lineTo(x, obs.y - 40);
@@ -132,8 +129,7 @@
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.closePath();
-
-        // Collision
+        
         const playerX = playerLane * laneWidth + laneWidth / 2;
         const playerY = canvas.height - 100;
         const dx = playerX - x;
@@ -170,7 +166,6 @@
     function gameLoop() {
   if (paused) return;
 
-  // Fill background
   ctx.fillStyle = "#111"; 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
