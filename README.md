@@ -1,6 +1,6 @@
 # 🚀 Neon Drift
 
-**Neon Drift** is a fast-paced reflex racing game built entirely with HTML5, CSS, and JavaScript. Dodge neon bombs, drift through glowing lanes, and chase a high score in this cyberpunk-inspired mini arcade game.
+**Neon Drift** is a fast-paced reflex racing game built entirely with HTML5 and CSS. Dodge neon bombs, drift through glowing lanes, and chase a high score in this cyberpunk-inspired mini arcade game.
 
 ## 🎮 How to Play
 
